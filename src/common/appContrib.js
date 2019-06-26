@@ -67,6 +67,11 @@ export default new class AppContribution {
     return config.get("dotnet.nugetFeeds", dotnetDefaultNuGetFeeds);
   }
 
+  get dotnetNuGetV2Feeds() {
+    const config = workspace.getConfiguration('versionlens');
+    return config.get("dotnet.nugetV2Feeds", []);
+  }
+
   get dotnetIncludePrerelease() {
     const config = workspace.getConfiguration('versionlens');
     return config.get("dotnet.includePrerelease", true);

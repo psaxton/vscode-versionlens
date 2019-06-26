@@ -3,13 +3,16 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import appContrib from 'common/appContrib';
+import { version } from 'typescript';
 const semver = require('semver');
 
 export function nugetGetPackageVersions(packageName) {
   const httpRequest = require('request-light');
+  const xmldoc = require('xmldoc');
+  const includePrerelease = appContrib.dotnetIncludePrerelease;
 
   const promises = appContrib.dotnetNuGetFeeds.map(feed => {
-    const queryUrl = `${feed}?id=${packageName}&prerelease=${appContrib.dotnetIncludePrerelease}&semVerLevel=2.0.0`;
+    const queryUrl = `${feed}?id=${packageName}&prerelease=${includePrerelease}&semVerLevel=2.0.0`;
     return new Promise(function (resolve, reject) {
       httpRequest.xhr({ url: queryUrl })
         .then(response => {
@@ -29,6 +32,38 @@ export function nugetGetPackageVersions(packageName) {
         }).catch(reject);
     });
   })
+  .concat(appContrib.dotnetNuGetV2Feeds.map(feed => {
+    const queryUrl = `${feed}/Packages?$filter=Id eq '${packageName}'`;
+    return new Promise(function (resolve, reject) {
+      httpRequest.xhr({url: queryUrl })
+        .then(response => {
+          if (response.status != 200) {
+            reject({
+              status: response.status,
+              responseText: response.responseText
+            });
+            return;
+          }
+          const doc = new xmldoc.XmlDocument(response.responseText);
+          packageName = packageName
+
+          let entries = doc.childrenNamed("entry");
+          if (!includePrerelease) {
+            entries = entries.filter(entry => entry.childNamed("m:properties").valueWithPath("d:IsPrerelease") !== "true");
+          }
+          const versionList = entries.map(entry => entry.childNamed("m:properties").valueWithPath("d:Version"));
+
+          if (versionList.length == 0)
+            reject({ status: 404 });
+          else
+            resolve(versionList);
+        }).catch(() => {
+          reject(arguments);
+        });
+    });
+  }));
+
+
 
   return Promise.all(promises.map(p => {
     return p.then(
