@@ -8,7 +8,7 @@
   },
   "author": "Peter Flannery",
   "license": "MIT",
-  "version": "0.24.0",
+  "version": "0.24.1-beta",
   "publisher": "pflannery",
   "displayName": "Version Lens",
   "icon": "images/logo.png",
@@ -296,6 +296,14 @@
             "https://api-v2v3search-0.nuget.org/autocomplete"
           ],
           "description": "Defines which NuGet feeds to use for package search. Has to be 'SearchAutocompleteService' endpoint, which can be found by navigating to feed index (e.g. https://api.nuget.org/v3/index.json) and looking for Url with that type."
+        },
+        "versionlens.dotnet.nugetV2Feeds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Defines NuGet V2 package feeds to search. These are feeds without an 'SearchAutocompleteService' endpoint returning XML formatted data."
         },
         "versionlens.dotnet.includePrerelease": {
           "type": "boolean",

@@ -45,7 +45,6 @@ export function nugetGetPackageVersions(packageName) {
             return;
           }
           const doc = new xmldoc.XmlDocument(response.responseText);
-          packageName = packageName
 
           let entries = doc.childrenNamed("entry");
           if (!includePrerelease) {
@@ -72,7 +71,10 @@ export function nugetGetPackageVersions(packageName) {
     );
   })).then(
     results => {
-      const dataResults = results.filter(result => Array.isArray(result)).sort((a, b) => semver.gt(a[0], b[0])); // Filter arrays and sort by first/highest version
+      const dataResults = results
+        .filter(result => Array.isArray(result))
+        .sort((a, b) => semver.compare(semver.coerce(a[0]), semver.coerce(b[0])));
+      console.log(`${packageName} versions:`, dataResults[0]);
       if (dataResults.length === 0) return Promise.reject(results[0]); // If no arrays, no successful resolves
       return Promise.resolve(dataResults[0]);
     },
